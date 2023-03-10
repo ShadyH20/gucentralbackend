@@ -32,6 +32,9 @@ class Scrapper:
         else:
             # Correct Credentials
 
+            # Get ID and Name
+            idName, successIdName = self.get_idname()
+
             # Get Cumilatuve GPA
             gpa, successGPA = self.get_gpa_please("2022-2023")
 
@@ -42,9 +45,11 @@ class Scrapper:
             schedule, successSch = self.get_schedule_whole()
 
             result = {"success": True}
-            result['gpa'] = gpa if successGPA else -1
+            result['gpa'] = gpa if successGPA else "40.4"
             result['courses'] = courses if successCourses else []
             result['schedule'] = schedule if successSch else []
+            result['id'] = idName[0] if successIdName else "No ID"
+            result['name'] = idName[1] if successIdName else "No Nsme"
 
             return result
 
