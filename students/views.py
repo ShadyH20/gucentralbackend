@@ -9,6 +9,15 @@ from corsheaders.defaults import default_headers
 
 
 class StudentAPIView(ViewSet):
+    def login(self, request):
+        if request.method == 'POST':
+            username = request.data["username"]
+            password = request.data["password"]
+            scrapper = Scrapper(username, password)
+            result= scrapper.login()
+            response = JsonResponse(result)
+            return CorsMiddleware(get_response=False).process_response(request, response)
+
     def courses(self, request):
         if request.method == 'POST':
             username = request.data["username"]

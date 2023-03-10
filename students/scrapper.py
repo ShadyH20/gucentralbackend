@@ -10,6 +10,11 @@ courses_url = 'https://cms.guc.edu.eg/apps/student/HomePageStn.aspx'
 transcriptUrl = "https://student.guc.edu.eg/external/student/grade/Transcript.aspx"
 
 
+class ClassType(Enum):
+    Lecture = 1
+    Lab = 2
+    Tutorial = 3
+
 class Scrapper:
     def __init__(self, username, password):
 
@@ -23,7 +28,7 @@ class Scrapper:
         if r.status_code != 200:
             # Wrong Credentials
             print("An Error Occurred. Check Credentials And Try Again.")
-            return [], False
+            return {"success": False}
         else:
             # Correct Credentials
 
@@ -34,7 +39,14 @@ class Scrapper:
             courses, successCourses = self.get_courses_data()
 
             # Get Schedule
-            schedule, successSch = self
+            schedule, successSch = self.get_schedule_whole()
+
+            result = {"success": True}
+            result['gpa'] = gpa if successGPA else -1
+            result['courses'] = courses if successCourses else []
+            result['schedule'] = schedule if successSch else []
+
+            return result
 
     # converts(returns) the index of the day given the day's name
 
@@ -182,13 +194,6 @@ class Scrapper:
                 courses.append(course_name)
             return courses, True
 
-
-
-
-class ClassType(Enum):
-    Lecture = 1
-    Lab = 2
-    Tutorial = 3
 
 # class Class:
 #     def __init__(self, type: ClassType, location, course, groupNum):
