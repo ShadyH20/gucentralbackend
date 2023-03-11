@@ -15,6 +15,7 @@ class ClassType(Enum):
     Lab = 2
     Tutorial = 3
 
+
 class Scrapper:
     def __init__(self, username, password):
 
@@ -49,12 +50,11 @@ class Scrapper:
             result['courses'] = courses if successCourses else []
             result['schedule'] = schedule if successSch else []
             result['id'] = idName[0] if successIdName else "No ID"
-            result['name'] = idName[1] if successIdName else "No Nsme"
+            result['name'] = idName[1] if successIdName else "No Name"
 
             return result
 
     # converts(returns) the index of the day given the day's name
-
     def get_day_index(self, day_name: str):
         day_name = day_name.lower()
         index = -1
@@ -199,6 +199,76 @@ class Scrapper:
                 courses.append(course_name)
             return courses, True
 
+    def get_year_transcript(self, year):
+        # Create a browser object with MechanicalSoup
+        browser = mechanicalsoup.StatefulBrowser()
+
+        # Set the authentication credentials
+        browser.session.auth = HttpNtlmAuth(self.username, self.password)
+
+        # Navigate to the web page
+        res = browser.open(transcriptUrl)
+        if res.status_code != 200:
+            print("An Error Occurred. Check Credentials And Try Again.",
+                  "SC: " + str(res.status_code))
+            return {"success": False}
+        else:
+            # Get the option value from its text
+            option_value = browser.page.find("option", string=year)['value']
+
+            # Submit the form
+            form = browser.select_form('form')
+            form.set_select({'stdYrLst': option_value})
+            res = browser.submit_selected()
+            # print(browser.page)
+
+            soup = browser.page
+
+            transcript = []
+
+            tables = soup.find_all('table', id="Table4")
+
+            for table in tables:
+
+                valid_table = False
+
+                # Find the title of the semester
+                first_row = table.find('tr')
+                first_col = first_row.find('td')
+                title = first_col.find('strong').text.strip()
+                # print(title)
+
+                # Find all the rows in the table except the first one
+                rows = table.find_all('tr')[2:]
+                course_list = []
+                for i in range(len(rows)):
+                    row = rows[i]
+                    cols = row.find_all('td')
+
+                    if i != len(rows) - 1:
+                        # Extract the course name, grade, and hours
+                        course_name = cols[1].text.strip()
+                        grade = cols[3].text.strip()
+                        hours = cols[4].text.strip()
+                        course_list.append([course_name, grade, hours])
+                    else:
+                        # Extract the semester GPA and total hours
+                        gpa = cols[2].text.strip()
+                        hours = cols[4].text.strip()
+                        if (int(hours) > 0):
+                            valid_table = True
+                        course_list.append([gpa, hours])
+
+                if valid_table:
+                    transcript.append([title, course_list])
+
+            for sem in transcript:
+                for row in sem:
+                    print(row)
+                print()
+
+            return {"transcript": transcript, "success": True}
+
 
 # class Class:
 #     def __init__(self, type: ClassType, location, course, groupNum):
@@ -207,6 +277,8 @@ class Scrapper:
 #         self.groupNum = groupNum
 
     # GET WHOLE SCHEDULE #
+
+
     def get_schedule_whole(self):
 
         schedResp = requests.get(schedule_url,

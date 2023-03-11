@@ -14,7 +14,7 @@ class StudentAPIView(ViewSet):
             username = request.data["username"]
             password = request.data["password"]
             scrapper = Scrapper(username, password)
-            result= scrapper.login()
+            result = scrapper.login()
             response = JsonResponse(result)
             return CorsMiddleware(get_response=False).process_response(request, response)
 
@@ -44,6 +44,16 @@ class StudentAPIView(ViewSet):
             idName, success = scrapper.get_idname()
             response = JsonResponse(
                 {'id': idName[0], 'name': idName[1], 'success': success})
+            return CorsMiddleware(get_response=False).process_response(request, response)
+
+    def transcript(self, request):
+        if request.method == 'POST':
+            username = request.data["username"]
+            password = request.data["password"]
+            year = request.data["year"]
+            scrapper = Scrapper(username, password)
+            transcript = scrapper.get_year_transcript(year)
+            response = JsonResponse(transcript)
             return CorsMiddleware(get_response=False).process_response(request, response)
 
     # Override the `http_method_not_allowed` method to allow CORS preflight requests
