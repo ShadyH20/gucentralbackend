@@ -32,4 +32,7 @@ urlpatterns = [
     path('idname', StudentAPIView.as_view({
         'post': 'idname',
     })),
+    path('transcript', StudentAPIView.as_view({
+        'post': 'transcript',
+    })),
 ]
